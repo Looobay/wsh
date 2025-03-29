@@ -1,0 +1,4 @@
+*.wsh
+*.bat
+build/
+test/
