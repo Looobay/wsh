@@ -1,0 +1,1 @@
+dmd src/main.d src/utils.d -of=D:\wsh\build\wsh.exe
