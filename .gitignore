@@ -2,4 +2,4 @@
 *.bat
 build/
 test/
-!build.bat
+!buildwin.bat
