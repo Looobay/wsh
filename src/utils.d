@@ -63,9 +63,6 @@ void router(string command, string[] args, string currentDir) {
         case "nano":
             runNano(args);
             break;
-        case "vim":
-            runVim(args);
-            break;
         default:
             // Handle special cases that can't be directly matched in the switch
             if (command.findSplit(".wsh") && exists(command)) {
