@@ -7,8 +7,15 @@ import core.stdc.stdlib; // exit
 
 import utils;
 
-void main() {
-    writeln("Windows Shell (WSH) - UNIX-like shell for Windows");
+void main(string[] arguments) {
+    if (arguments.length > 1){
+        if (arguments[1] == "--version"){
+            writeln("WinShell (WSH) dev 0.1");
+            exit(0);
+        }
+    }
+
+    writeln("WinShell (WSH) - UNIX-like shell for Windows");
 
     while (true) {
         try {

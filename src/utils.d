@@ -11,36 +11,65 @@ import std.process; // spawnProcess, wait
 
 bool isDebug = false;
 
+string[] history = []; // Command history
+
 // Route every command to the good function for it.
 void router(string command, string[] args, string currentDir) {
     auto regex = regex(r"^[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+$"); // regex for files
 
-    if (command == "exit") {
-        exit(0);
-    } else if (command == "cd") {
-        cd(args);
-    } else if (command == "ls") {
-        ls(currentDir, args);
-    } else if (command == "echo") {
-        echo(args);
-    } else if (command == "pwd") {
-        pwd();
-    } else if (command == "clear") {
-        clear();
-    } else if (command == "true") {
-        // do nothing
-    } else if (command == "false") {
-        // do nothing
-    } else if (command == "cat") {
-        cat(args);
-    } else if (command == "mkdir") {
-        mkdir(args);
-    } else if (command.findSplit(".wsh") && exists(command)) {
-        runScript(command, currentDir);
-    } else if (match(command[2 .. $], regex) || match(command, regex)) {
-        runExternal(args);
+    switch (command) {
+        case "exit":
+            exit(0);
+            break;
+        case "cd":
+            cd(args);
+            break;
+        case "ls":
+            ls(currentDir, args);
+            break;
+        case "echo":
+            echo(args);
+            break;
+        case "pwd":
+            pwd();
+            break;
+        case "clear":
+            clear();
+            break;
+        case "true":
+            // do nothing
+            break;
+        case "false":
+            // do nothing
+            break;
+        case "cat":
+            cat(args);
+            break;
+        case "mkdir":
+            mkdir(args);
+            break;
+        case "wsh":
+            runWsh(args);
+            break;
+        case "history":
+            historic();
+            break;
+        default:
+            // Handle special cases that can't be directly matched in the switch
+            if (command.findSplit(".wsh") && exists(command)) {
+                runScript(command, currentDir);
+            } else if (match(command[2 .. $], regex) || match(command, regex)) {
+                runExternal(args);
+            } else {
+                writeln("error: unknown command");
+            }
+            break;
+    }
+
+    if (args.length > 0) {
+        history ~= command ~ " " ~ args[1 .. $].join(" ");
     } else {
-        writeln("error: unknown command");
+        history ~= command;
     }
 }
 
@@ -114,7 +143,7 @@ void runExternal(string[] args) {
         auto pid = spawnProcess(args);
         wait(pid);
     } catch (ProcessException e) {
-        stderr.writeln("Erreur: ", e.msg);
+        stderr.writeln("Error: ", e.msg);
     }
 }
 
@@ -130,7 +159,7 @@ void pwd() {
     try {
         writeln(getcwd());
     } catch (FileException e) {
-        stderr.writeln("Erreur: ", e.msg);
+        stderr.writeln("Error: ", e.msg);
     }
 }
 
@@ -139,26 +168,26 @@ void clear() {
         auto pid = spawnProcess(["cmd", "/c", "cls"]); // cls = clear screen
         wait(pid);
     } catch (ProcessException e) {
-        stderr.writeln("Erreur lors du nettoyage de l'écran : ", e.msg);
+        stderr.writeln("Error while clearing screen : ", e.msg);
     }
 }
 
 void cat(string[] args) {
     if (args.length < 2) {
-        stderr.writeln("cat: missing arguments (example: cat file.txt)");
+        stderr.writef("cat: missing arguments (example: cat file.txt)");
     } else {
         foreach (filename; args[1..$]) {
             try {
                 if (!exists(filename)) {
-                    stderr.writeln("cat: '", filename, "' does not exist");
+                    stderr.writef("cat: '", filename, "' does not exist");
                 } else if (isDir(filename)) {
-                    stderr.writeln("cat: '", filename, "' is a directory");
+                    stderr.writef("cat: '", filename, "' is a directory");
                 } else {
                     string content = readText(filename);
                     write(content);
                 }
             } catch (Exception e) {
-                stderr.writeln("cat: error reading '", filename, "' : ", e.msg);
+                stderr.writef("cat: error reading '", filename, "' : ", e.msg);
             }
         }
     }
@@ -202,5 +231,29 @@ void runScript(string scriptPath, string currentDir) {
         }
     } catch (Exception e) {
         stderr.writeln("wsh: error executing '", scriptPath, "' : ", e.msg);
+    }
+}
+
+void runWsh(string[] args) {
+    try {
+        string exePath = "D:\\wsh\\build\\wsh.exe"; // Remplace par le chemin réel si nécessaire (ex. "C:\\path\\to\\wsh.exe")
+        string[] wshArgs = [exePath];
+        if (args.length > 1) {
+            wshArgs ~= args[1..$];
+        }
+        auto pid = spawnProcess(wshArgs);
+        wait(pid);
+    } catch (ProcessException e) {
+        stderr.writeln("wsh: error launching shell: ", e.msg);
+    }
+}
+
+void historic(){
+    foreach (h;history){
+        writeln(h);
+    }
+    history ~= "history";
+    if (history.length >= 500) {
+        history = history[100 .. $]; // delete 100 first elements
     }
 }
