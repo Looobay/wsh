@@ -1,0 +1,1 @@
+wine ~/.wine/drive_c/ldc2/bin/ldc2.exe -of=build/wsh.exe src/main.d src/utils.d src/external.d -J=tools
