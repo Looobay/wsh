@@ -1,4 +1,0 @@
-echo Vulkan Cube !!!!!
-cd test
-vkcube.exe
-cd ..

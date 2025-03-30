@@ -8,6 +8,7 @@ import std.algorithm;
 import std.string;
 import std.regex;
 import std.process; // spawnProcess, wait
+import core.sys.windows.windows;
 
 bool isDebug = false;
 
@@ -53,6 +54,9 @@ void router(string command, string[] args, string currentDir) {
             break;
         case "history":
             historic();
+            break;
+        case "touch":
+            touch(args);
             break;
         default:
             // Handle special cases that can't be directly matched in the switch
@@ -255,5 +259,26 @@ void historic(){
     history ~= "history";
     if (history.length >= 500) {
         history = history[100 .. $]; // delete 100 first elements
+    }
+}
+
+void touch(string[] args) {
+    if (args.length < 2) {
+        stderr.writeln("touch: missing arguments (example: touch foo.txt)");
+        return;
+    }
+    foreach (filename; args[1..$]) {
+        try {
+            if (exists(filename)) {
+                stderr.writeln("touch: '", filename, "' already exists");
+                continue;
+            }
+            std.file.write(filename, []);
+            if (isDebug) writeln("file: created file '", filename, "'"); // Feedback clair
+        } catch (FileException e) {
+            stderr.writeln("file: cannot create '", filename, "' : ", e.msg);
+        } catch (Exception e) {
+            stderr.writeln("file: unexpected error creating '", filename, "' : ", e.msg);
+        }
     }
 }
