@@ -10,6 +10,8 @@ import std.regex;
 import std.process; // spawnProcess, wait
 import core.sys.windows.windows;
 
+import external;
+
 bool isDebug = false;
 
 string[] history = []; // Command history
@@ -57,6 +59,12 @@ void router(string command, string[] args, string currentDir) {
             break;
         case "touch":
             touch(args);
+            break;
+        case "nano":
+            runNano(args);
+            break;
+        case "vim":
+            runVim(args);
             break;
         default:
             // Handle special cases that can't be directly matched in the switch
@@ -256,7 +264,6 @@ void historic(){
     foreach (h;history){
         writeln(h);
     }
-    history ~= "history";
     if (history.length >= 500) {
         history = history[100 .. $]; // delete 100 first elements
     }
